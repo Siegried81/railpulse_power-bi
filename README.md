@@ -1,8 +1,9 @@
 # RailPulse — Power BI Operations Dashboard
 
-This is the direct continuation of my RailPulse Azure Challenge project. I built this Power BI dashboard on top of that same Azure pipeline (Azure Function → Azure SQL → `liveboard_records`) to answer the four core operational questions: punctuality, rush-hour bottlenecks, train-class performance, and station congestion. Everything below reflects the state of the report as of my latest refresh (07/08/2026, 9h20), with the numbers pulled directly from the current data model rather than estimated.
+This is the direct continuation of my RailPulse Azure Challenge project. I built this Power BI dashboard on top of that same Azure pipeline (Azure Function → Azure SQL → `liveboard_records`) to answer the four core operational questions: punctuality, rush-hour bottlenecks, train-class performance, and station congestion. Everything below reflects the state of the report as of my latest refresh (07/08/2026, 09:20), with the numbers pulled directly from the current data model rather than estimated.
 
 **Published:** this report is live in my Power BI Service workspace ("Railpulse") — [live link](https://app.powerbi.com/links/hAXgx48G73?ctid=33ac9060-aa07-4cb9-8fbc-4dcf3a48b1d7&pbi_source=linkShare).
+Or you can simply download it from this repo.
 
 ## Table of Contents
 
@@ -27,7 +28,7 @@ This is the direct continuation of my RailPulse Azure Challenge project. I built
 
 ## 1. Data Model
 
-I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net`, database `db-railpulse`) for the live tables, and to Azure Blob Storage for the two static GTFS reference tables — `routes` and `trips` are served from `railpulsechallenge97d6.blob.core.windows.net/powerbi-gtfs-static/`, authenticated with my BeCode Microsoft Entra ID account. This was the last piece I needed to make the whole pipeline cloud-native end to end.
+I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net`, database `db-railpulse`) for the live tables, and to Azure Blob Storage for the two static GTFS reference tables, `routes` and `trips` are served from `railpulsechallenge97d6.blob.core.windows.net/powerbi-gtfs-static/`, authenticated with my BeCode Microsoft Entra ID account. This was the last piece I needed to make the whole pipeline cloud-native end to end.
 
 | Table | Source | Role |
 |---|---|---|
@@ -43,31 +44,31 @@ I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net
 
 **My honest read on the data window.** I've collected **12 days** of polling so far (27 Jul – 7 Aug 2026) — not much for trend analysis. The "Daily Change" KPI computes correctly, but I wouldn't call it a trend indicator yet — I frame it as "the mechanism works and is live," not "the network is improving," until several more days (or weeks, depending of my free credits) smooth out the noise.
 
-**Date relationship fix I applied:** I ran into an issue where `scheduled_time` (which includes the time of day) wouldn't relate to my pure-date `Date` table — Power BI just refused to link them properly. My fix was to add a calculated column, `Scheduled Date`, that strips out the time and keeps just the date, then I related that to `Date[Date]` instead.
+**Date relationship fix I applied:** I ran into an issue where `scheduled_time` (which includes the time of day) wouldn't relate to my puredate `Date` table — Power BI just refused to link them properly. My fix was to add a calculated column, `Scheduled Date`, that strips out the time and keeps just the date, then I related that to `Date[Date]` instead.
 
 ## 2. Report Pages
 
 11 pages, in this order:
 
-### 2.1 On Time Rate % — Must-Have: Punctuality Scorecard
+### 2.1 On Time Rate %: Punctuality Scorecard
 
 Landing/exec page: two gauges (All Network / Major Hubs, each driven by its own independent slicer — `Stations Name` for the network view, a dedicated `Major Hubs` slicer restricted to the 5 flagship stations for the hub view, with cross-interactions deliberately disabled between them so neither slicer affects the other's gauge), plus Total Records, Canceled Trains, the "Daily Change" trend KPI, and the standard 3-filter slicer set.
 
 **Conclusion:** My network-wide on-time rate sits at **78.3%** across all 980,868 records I've collected, which is a meaningful gap below the 90% objective I set out to measure against. What strikes me looking at this page is how much that single network-wide number hides — once I break it down by hub (§2.6), individual stations swing from the mid-60s to the high-80s, so "78.3%" is really an average of some fairly different local realities rather than a uniform experience across the network.
 
-### 2.2 Rush Hours — Must-Have: Rush Hour Matrix
+### 2.2 Rush Hours Matrix
 
-Combo chart (`lineClusteredColumnComboChart`): Train Volume (columns) vs Avg Delay (line) by Hour.
+Combo chart: Train Volume (columns) vs Avg Delay (line) by Hour.
 
 **Conclusion:** Volume peaks in the early-to-mid afternoon (14:00–16:00), but delay peaks later, in the 17:00–21:00 window, roughly double the midday baseline. That mismatch is the most interesting finding here — the network isn't slowest when it's busiest, it's slowest later in the day. I checked whether Nightjet services (my worst-performing category) were driving this, but they're a small enough slice of evening traffic (~5,8%) that the pattern holds without them — so the cause is still an open question for me.
 
-### 2.3 Delay by Train Category — Must-Have: Train Class Breakdown
+### 2.3 Delay by Train Category: Train Class Breakdown
 
 Combo chart: Total Delayed Minutes + Avg Delay (min) by `train_category`.
 
-**Conclusion:** IC and S trains dominate total delay volume — about 698,000 and 487,000 delayed minutes respectively — simply because they're the categories running the most trips. But Nightjet is the real outlier on a per-trip basis: only 4,252 records in my dataset, yet an average delay of nearly **17 minutes**, several times worse than any other category. I'd flag that as the single most actionable number on this page — it's a small, low-volume service, but almost every Nightjet departure I've recorded runs meaningfully late (see §2.10).
+**Conclusion:** IC and S trains dominate total delay volume (about 698,000 and 487,000 delayed minutes respectively) simply because they're the categories running the most trips. But Nightjet is the real outlier on a per-trip basis: only 4,252 records in my dataset, yet an average delay of nearly **17 minutes**, several times worse than any other category. I'd flag that as the single most actionable number on this page — it's a small, low-volume service, but almost every Nightjet departure I've recorded runs meaningfully late (see §2.10).
 
-### 2.4 Stations Congestion Map — Must-Have: Station Congestion Map
+### 2.4 Stations Congestion Map: Station Congestion Map
 
 Clustered bar chart (Total Delayed Minutes by station) + Azure Map (bubble size = Total Delayed Minutes, positioned by lat/long). Canvas deliberately larger (1250×1600) to fit the map.
 
@@ -89,13 +90,13 @@ Scatter chart: Avg Delay × Train Volume × Total Delayed Minutes, one bubble pe
 
 Line chart, On-Time Rate % across the week.
 
-**Conclusion:** Monday and Friday are my two weakest days, both sitting around 75–76% on-time, while Sunday is by far my strongest at nearly 86%. That pattern lines up with intuition — weekday commuter pressure at the start and end of the working week versus a much lighter, less schedule-dependent Sunday service — but I'd want more weeks of data before treating this as a stable weekly signature rather than a one-off pattern from my 12 days window.
+**Conclusion:** Monday and Friday are my two weakest days, both sitting around 75–76% on-time, while Sunday is by far my strongest at nearly 86%. That pattern lines up with intuition — weekday commuter pressure at the start and end of the working week versus a much lighter, less schedule-dependent Sunday service, but I'd want more weeks of data before treating this as a stable weekly signature rather than a one-off pattern from my 12 days window.
 
 ### 2.8 Delay Severity Breakdown
 
 Donut chart, records by severity band, fixed color palette, matched on the Micro Report bar chart using the same page.
 
-**Conclusion:** 78.3% of my records fall in the On Time band, 13.9% are Minor delays (2–5 min), and the remaining 7.7% split between Moderate (5.7%) and Severe (2.0%). What's notable to me is that the Moderate and Severe bands — under 8% of records combined — still account for a hugely disproportionate share of total delayed minutes, which is exactly what §2.9 makes visible.
+**Conclusion:** 78.3% of my records fall in the On Time band, 13.9% are Minor delays (2–5 min), and the remaining 7.7% split between Moderate (5.7%) and Severe (2.0%). What's notable to me is that the Moderate and Severe bands (under 8% of records combined) still account for a hugely disproportionate share of total delayed minutes, which is exactly what §2.9 makes visible.
 
 ### 2.9 Delay Concentration 
 
@@ -107,7 +108,7 @@ Pivot table, Hour × Day of Week, values = Total Delayed Minutes.
 
 Matrix, cross-tabulating severity against category, date, and hour.
 
-**Conclusion:** I built this page as my own drill-in reference — somewhere I can go to defend or double-check any number if it gets challenged during a walkthrough, not a headline chart on its own.
+**Conclusion:** I built this page as my own drill-in reference, somewhere I can go to defend or double-check any number if it gets challenged during a walkthrough, not a headline chart on its own.
 
 ### 2.11 Micro Report: Drill-Down Navigation (hidden drillthrough target)
 
@@ -135,8 +136,7 @@ DIVIDE(
 
 Total Records = COUNTROWS(liveboard_records)
 
-Canceled Trains = 
-CALCULATE(COUNTROWS(liveboard_records), liveboard_records[canceled] = TRUE)
+Canceled Trains = CALCULATE(COUNTROWS(liveboard_records), liveboard_records[canceled] = TRUE)
 -- Always 0 across all rows: the live GTFS-RT feed does not populate this field, or no train cancelled during my 12 days window...
 
 Target_Objectif = 0.9
@@ -152,8 +152,7 @@ Avg Delay (min) = AVERAGE(liveboard_records[delay_seconds]) / 60
 Total Delayed Minutes = DIVIDE(SUM(liveboard_records[delay_seconds]), 60)
 
 -- Trend ------------------------------------------------------------------------
--- Compares yesterday to the day before (not "today", which is always a partial
--- day at refresh time and would make the delta meaningless).
+-- Compares yesterday to the day before (not "today", which is always a partial day at refresh time and would make the delta meaningless).
 
 Trend vs Previous Period =
 VAR LatestDate = MAX('Date'[Date]) - 1
@@ -216,24 +215,33 @@ else null
 | Feature | Status |
 |---|---|
 | Drill-through navigation | ✅ Done — Micro Report, hidden target. |
-| Scheduled cloud refresh | ✅ Done — `routes` and `trips` read from Azure Blob Storage, authenticated via my Entra ID account. Scheduled refresh is live in Power BI Service (daily), tested successfully end to end |
-| Cross-Hub Comparison | ✅ "Avg Delay for Major Hubs" — all 5 major hubs, filterable, consistent field usage |
+| Scheduled cloud refresh | ✅ Done — `routes` and `trips` read from Azure Blob Storage, authenticated via my Entra ID account. Scheduled refresh is live in Power BI Service (daily at 09:00 AM), tested successfully end to end |
+| Cross-Hub Comparison | ✅ "Avg Delay for Major Hubs": all 5 major hubs, filterable, consistent field usage |
 
-## 5. Tactical Recommendations
+## 5. Top 3 Tactical Recommendations
 
-1. **Bruxelles-Central is the outlier among my five major hubs** — noticeably worse than Charleroi-Central and Gand-Saint-Pierre on both delay and on-time rate. If I had to prioritize one place to intervene, targeted dispatch or track-allocation fixes here would likely yield the largest system-wide punctuality gain per euro invested, given how much total delay this single station contributes.
-2. **Wednesday 17:00 is my single worst recurring bottleneck** — around 48,000 delayed minutes in that one cell alone, and Wednesday as a whole accounts for nearly a third of all delayed minutes I've recorded. Reallocating staffing or buffer time specifically to this slot would address the largest concentrated dip in my entire dataset.
+1. **Prioritize operational intervention at Bruxelles-Central (hub-level dispatch/track allocation).**
+   Bruxelles-Central is the weakest major hub in this model (lower on-time performance and higher average delay than peer hubs such as Charleroi-Central and Gand-Saint-Pierre).
+   *Expected impact:* Highest system-wide punctuality gain per intervention effort due to the hub's centrality and delay contribution.
 
+2. **Deploy targeted mitigation for the Wednesday 17:00 bottleneck.**
+   Wednesday is the heaviest delay-concentration day, and 17:00 is the single worst recurring slot in the dataset.
+   *Expected impact:* Reduce one of the most concentrated delay peaks through focused staffing, timetable buffers, and platform-flow adjustments during that specific window.
+
+3. **Launch a dedicated Nightjet punctuality action plan (small volume, high delay severity).**
+   Nightjet has low traffic share but disproportionately high average delay per trip compared with other categories.
+   *Expected impact:* Fast improvement on per-trip reliability metrics and visible reduction of severe-delay perception, even without major network-wide changes.
+   
 ## 6. What I Can Actually Do With This
 
 Now that the pipeline is fully cloud-native — live ingestion into Azure SQL, static reference data on Azure Blob, scheduled refresh with no local dependency — I see a few concrete uses for this dashboard beyond the bootcamp deliverable itself:
 
 - **A live talking point for interviews.** This is a real, working, end-to-end data product I can pull up and walk someone through: ingestion, modeling, DAX, and a decision-support layer on top. It demonstrates the full stack rather than just a notebook.
-- **An early-warning tool, once the data window grows.** The mechanism for tracking on-time rate, delay concentration, and category performance is already built and refreshing daily. Given a few more days (weeks) of accumulation, the "Daily Change" trend KPI and day-of-week patterns would start to mean something statistically, rather than just reflecting single-day noise the way they do today.
+- **An early-warning tool, once the data window grows.** The mechanism for tracking on-time rate, delay concentration, and category performance is already built and refreshing daily. Given a few more weeks of accumulation, the "Daily Change" trend KPI and day-of-week patterns would start to mean something statistically, rather than just reflecting single-day noise the way they do today.
 - **A template I can reuse.** The pattern I landed on here — GTFS-RT ingestion via Azure Functions, Azure SQL as the fact store, static reference data on Blob Storage, Power BI on top with a documented DAX layer — isn't specific to Belgian rail. I could point the same architecture at any other public real-time transit feed.
 
 ## 7. Final Conclusion
 
 What matters most to me looking back at this build isn't any individual chart — it's that the pipeline runs as one closed loop from end to end. Real-time GTFS-RT data lands in Azure SQL, static reference data lives on Azure Blob, Power BI refreshes on its own schedule with no local file and no gateway keeping it alive, and every number on every page traces back to that same live source. That was the actual goal, more than any individual insight.
 
-The insights themselves are real, even with only 12 days behind them: Bruxelles-Central underperforms its peer hubs, Wednesday evenings are my worst recurring bottleneck, and Nightjet services run late far more than their small volume would suggest. I trust those patterns enough to act on them operationally, but I'm deliberately not overselling the trend layer — a 12 days window is a starting point, not a verdict, and I'd rather say that plainly than let a "Daily Change" arrow imply more certainty than the data currently supports. If I keep this pipeline running, the same dashboard should only get more useful with time, without me having to change a single measure.
+The insights themselves are real, even with only 12 days behind them: Bruxelles-Central underperforms its peer hubs, Wednesday evenings (peak at 17:00) are my worst recurring bottleneck, and Nightjet services run late far more than their small volume would suggest. I trust these patterns enough to act on operationally, but I'm being deliberate about not overselling the trend layer — a 12-day window is a starting point, not a verdict, and I'd rather state that plainly than let a "Daily Change" arrow suggest more certainty than the data currently supports. As long as I keep this pipeline running, the dashboard should only grow more useful over time, with no measures needing to change.
