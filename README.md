@@ -84,7 +84,7 @@ Bar chart, Avg Delay by station, all stations.
 
 Scatter chart: Avg Delay × Train Volume × Total Delayed Minutes, one bubble per major hub. 
 
-**Conclusion:** Bruxelles-Central is clearly my weakest major hub — around 66% on-time and roughly 2.2 minutes average delay, noticeably worse than Charleroi-Central (87% on-time, ~1.1 min) and Gand-Saint-Pierre (84% on-time, ~1.3 min), which are my two best performers. Anvers-Central and Liège-Guillemins sit in between. What I take from this chart is that "major hub" doesn't mean "equally strained" — Bruxelles-Central is carrying a disproportionate share of my delay problem relative to its four peers.
+**Conclusion:** Bruxelles-Central is clearly my weakest major hub: around 66% on-time and roughly 2.2 minutes average delay, noticeably worse than Charleroi-Central (87% on-time, ~1.1 min) and Gand-Saint-Pierre (84% on-time, ~1.3 min), which are my two best performers. Anvers-Central and Liège-Guillemins sit in between. What I take from this chart is that "major hub" doesn't mean "equally strained"; Bruxelles-Central is carrying a disproportionate share of my delay problem relative to its four peers.
 
 ### 2.7 On-Time Rate by Day of Week
 
@@ -137,7 +137,7 @@ DIVIDE(
 Total Records = COUNTROWS(liveboard_records)
 
 Canceled Trains = CALCULATE(COUNTROWS(liveboard_records), liveboard_records[canceled] = TRUE)
--- Always 0 across all rows: the live GTFS-RT feed does not populate this field, or no train cancelled during my 12 days window...
+-- Always 0 across all rows: the live GTFS-RT feed does not populate this field (or no train cancelled during my 12 days window?)
 
 Target_Objectif = 0.9
 
@@ -152,7 +152,7 @@ Avg Delay (min) = AVERAGE(liveboard_records[delay_seconds]) / 60
 Total Delayed Minutes = DIVIDE(SUM(liveboard_records[delay_seconds]), 60)
 
 -- Trend ------------------------------------------------------------------------
--- Compares yesterday to the day before (not "today", which is always a partial day at refresh time and would make the delta meaningless).
+-- Compares yesterday to the day before (not "today", which is always a partial day at refresh time).
 
 Trend vs Previous Period =
 VAR LatestDate = MAX('Date'[Date]) - 1
@@ -198,7 +198,7 @@ RETURN SWITCH(TRUE(),
     "#FF0000"
 )
 ```
-**Why the color thresholds don't match Delay Severity's bands:** Delay Severity classifies a single trip; Avg Delay Status Color classifies a station-level average, and averages compress toward the middle — a station with plenty of severely late trains can still average under 2 minutes. Reusing the severity bands here would leave almost every station green, so I calibrated against my actual data instead: 1.5 min sits near my median station, 2.5 min near my 75th percentile — splitting stations into roughly even green/orange/red groups based on real performance, not arbitrary numbers.
+**Why the color thresholds don't match Delay Severity's bands:** Delay Severity classifies a single trip; Avg Delay Status Color classifies a station-level average, and averages compress toward the middle, a station with plenty of severely late trains can still average under 2 minutes. Reusing the severity bands here would leave almost every station green, so I calibrated against my actual data instead: 1.5 min sits near my median station, 2.5 min near my 75th percentile — splitting stations into roughly even green/orange/red groups based on real performance, not arbitrary numbers.
 
 `Delay Severity` is **not a DAX measure** — it's a calculated column I added in Power Query (M), on the `liveboard_records` query:
 
@@ -234,14 +234,14 @@ else null
    
 ## 6. What I Can Actually Do With This
 
-Now that the pipeline is fully cloud-native — live ingestion into Azure SQL, static reference data on Azure Blob, scheduled refresh with no local dependency — I see a few concrete uses for this dashboard beyond the bootcamp deliverable itself:
+Now that the pipeline is fully cloud-native — live ingestion into Azure SQL, static reference data on Azure Blob, scheduled refresh with no local dependency; I see a few concrete uses for this dashboard beyond the bootcamp deliverable itself:
 
 - **A live talking point for interviews.** This is a real, working, end-to-end data product I can pull up and walk someone through: ingestion, modeling, DAX, and a decision-support layer on top. It demonstrates the full stack rather than just a notebook.
 - **An early-warning tool, once the data window grows.** The mechanism for tracking on-time rate, delay concentration, and category performance is already built and refreshing daily. Given a few more weeks of accumulation, the "Daily Change" trend KPI and day-of-week patterns would start to mean something statistically, rather than just reflecting single-day noise the way they do today.
-- **A template I can reuse.** The pattern I landed on here — GTFS-RT ingestion via Azure Functions, Azure SQL as the fact store, static reference data on Blob Storage, Power BI on top with a documented DAX layer — isn't specific to Belgian rail. I could point the same architecture at any other public real-time transit feed.
+- **A template I can reuse.** The pattern I landed on here — GTFS-RT ingestion via Azure Functions, Azure SQL as the fact store, static reference data on Blob Storage, Power BI on top with a documented DAX layer, isn't specific to Belgian rail. I could point the same architecture at any other public real-time transit feed.
 
 ## 7. Final Conclusion
 
-What matters most to me looking back at this build isn't any individual chart — it's that the pipeline runs as one closed loop from end to end. Real-time GTFS-RT data lands in Azure SQL, static reference data lives on Azure Blob, Power BI refreshes on its own schedule with no local file and no gateway keeping it alive, and every number on every page traces back to that same live source. That was the actual goal, more than any individual insight.
+What matters most to me looking back at this build isn't any individual chart, it's that the pipeline runs as one closed loop from end to end. Real-time GTFS-RT data lands in Azure SQL, static reference data lives on Azure Blob, Power BI refreshes on its own schedule with no local file and no gateway keeping it alive, and every number on every page traces back to that same live source. That was the actual goal, more than any individual insight.
 
 The insights themselves are real, even with only 12 days behind them: Bruxelles-Central underperforms its peer hubs, Wednesday evenings (peak at 17:00) are my worst recurring bottleneck, and Nightjet services run late far more than their small volume would suggest. I trust these patterns enough to act on operationally, but I'm being deliberate about not overselling the trend layer — a 12-day window is a starting point, not a verdict, and I'd rather state that plainly than let a "Daily Change" arrow suggest more certainty than the data currently supports. As long as I keep this pipeline running, the dashboard should only grow more useful over time, with no measures needing to change.
