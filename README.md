@@ -8,17 +8,17 @@ This is the direct continuation of my RailPulse Azure Challenge project. I built
 
 - [1. Data Model](#1-data-model)
 - [2. Report Pages](#2-report-pages)
-  - [2.1 On Time Rate %](#21-on-time-rate--must-have-punctuality-scorecard)
-  - [2.2 Rush Hours](#22-rush-hours--must-have-rush-hour-matrix)
-  - [2.3 Delay by Train Category](#23-delay-by-train-category--must-have-train-class-breakdown)
-  - [2.4 Stations Congestion Map](#24-stations-congestion-map--must-have-platformstation-congestion-map)
+  - [2.1 On Time Rate %](#21-on-time-rate-punctuality-scorecard)
+  - [2.2 Rush Hours](#22-rush-hours-rush-hour-matrix)
+  - [2.3 Delay by Train Category](#23-delay-by-train-category-train-class-breakdown)
+  - [2.4 Stations Congestion Map](#24-stations-congestion-map-platformstation-congestion-map)
   - [2.5 Top 10 Worst-Performing Stations](#25-top-10-worst-performing-stations)
-  - [2.6 Avg Delay for Major Hubs](#26-avg-delay-for-major-hubs--nice-to-have-cross-hub-comparison)
+  - [2.6 Avg Delay for Major Hubs](#26-avg-delay-for-major-hubs-cross-hub-comparison)
   - [2.7 On-Time Rate by Day of Week](#27-on-time-rate-by-day-of-week)
   - [2.8 Delay Severity Breakdown](#28-delay-severity-breakdown)
   - [2.9 Delay Concentration](#29-delay-concentration)
   - [2.10 Delay Severity by Train Category, Date and Hour](#210-delay-severity-by-train-category-date-and-hour)
-  - [2.11 Micro Report](#211-micro-report--nice-to-have-drill-down-navigation-hidden-drillthrough-target)
+  - [2.11 Micro Report](#211-micro-report-drill-down-navigation-hidden-drillthrough-target)
 - [3. DAX Measures](#3-dax-measures)
 - [4. Nice-to-Have Coverage](#4-nice-to-have-coverage)
 - [5. Top 3 Tactical Recommendations](#5-tactical-recommendations)
@@ -73,13 +73,13 @@ Clustered bar chart (Total Delayed Minutes by station) + Azure Map (bubble size 
 
 **Conclusion:** Congestion is heavily concentrated rather than spread evenly across my 598-station network — the three Brussels hubs (Nord, Midi, Central) alone account for close to 180,000 of my roughly 1.7 million total delayed minutes, despite representing a tiny fraction of the stations I'm tracking. Looking at the map, it's visually obvious that the network's delay problem is really a "handful of major junctions" problem rather than a diffuse, network-wide one.
 
-### 2.5 Top 10 Worst-Performing Stations — Supporting detail
+### 2.5 Top 10 Worst-Performing Stations
 
 Bar chart, Avg Delay by station, all stations.
 
 **Conclusion:** This is where the international/border stations show up — Rosenheim (DE) tops my list at nearly 43 minutes average delay, followed by München Ost and Koblenz Hbf, all well above anything in the Belgian core network. I read this less as "SNCB is failing these stations" and more as: these are the last stops on long cross-border lines, so delay that piled up somewhere earlier on the route probably just shows up here at the end. I can't confirm that from this data alone, but it's the explanation that makes the most sense to me (worth keeping in mind before using this chart to point fingers).
 
-### 2.6 Avg Delay for Major Hubs — Nice-to-Have: Cross-Hub Comparison
+### 2.6 Avg Delay for Major Hubs: Cross-Hub Comparison
 
 Scatter chart: Avg Delay × Train Volume × Total Delayed Minutes, one bubble per major hub. 
 
@@ -109,7 +109,7 @@ Matrix, cross-tabulating severity against category, date, and hour.
 
 **Conclusion:** I built this page as my own drill-in reference — somewhere I can go to defend or double-check any number if it gets challenged during a walkthrough, not a headline chart on its own.
 
-### 2.11 Micro Report — Nice-to-Have: Drill-Down Navigation (hidden drillthrough target)
+### 2.11 Micro Report: Drill-Down Navigation (hidden drillthrough target)
 
 The only page I configured with `pageBinding: Drillthrough`, cleaned up to exactly two fields: `train_category` and `Stations Name`. Hidden from the tab bar. Contains: `Selected Station` title card, 4 KPI cards with conditional red/orange/green formatting, an Hour trend line, a day-of-week trend line, and two bar charts (Delay Severity, Avg Delay by train_category). 
 
