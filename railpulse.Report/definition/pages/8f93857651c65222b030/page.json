@@ -1,0 +1,70 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "8f93857651c65222b030",
+  "displayName": "On Time Rate %",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "21d7d12a8cc059412be0",
+      "target": "5e1ead165b20080525c3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "21d7d12a8cc059412be0",
+      "target": "d9c5a99ba2eddda00494",
+      "type": "NoFilter"
+    },
+    {
+      "source": "d9c5a99ba2eddda00494",
+      "target": "7b7b0dae3db3b13097a3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "d9c5a99ba2eddda00494",
+      "target": "dfbce1a761a2d10993ce",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c5cc0c02de1088555986",
+      "target": "7b7b0dae3db3b13097a3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c5cc0c02de1088555986",
+      "target": "ebc3f3494baeecec0a02",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ebc3f3494baeecec0a02",
+      "target": "c5cc0c02de1088555986",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ebc3f3494baeecec0a02",
+      "target": "5e1ead165b20080525c3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "190aa2f54241eb820bda",
+      "target": "c5cc0c02de1088555986",
+      "type": "NoFilter"
+    },
+    {
+      "source": "190aa2f54241eb820bda",
+      "target": "5e1ead165b20080525c3",
+      "type": "NoFilter"
+    },
+    {
+      "source": "21d7d12a8cc059412be0",
+      "target": "c5cc0c02de1088555986",
+      "type": "NoFilter"
+    },
+    {
+      "source": "21d7d12a8cc059412be0",
+      "target": "190aa2f54241eb820bda",
+      "type": "NoFilter"
+    }
+  ]
+}

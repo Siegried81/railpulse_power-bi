@@ -1,0 +1,224 @@
+table liveboard_records
+	lineageTag: dc7f5ebf-4b5d-431e-87a9-43a248c3f3ae
+
+	column record_id
+		dataType: int64
+		formatString: 0
+		lineageTag: d480f202-972b-444a-a028-2dda6dbcdf19
+		summarizeBy: sum
+		sourceColumn: record_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column station_id
+		dataType: string
+		lineageTag: 2abd28a4-3aff-4f45-96c4-9b6a234cc54c
+		summarizeBy: none
+		sourceColumn: station_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column vehicle_id
+		dataType: string
+		lineageTag: c4845bcb-20b6-487b-84e7-3f88b119f491
+		summarizeBy: none
+		sourceColumn: vehicle_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column platform
+		dataType: string
+		lineageTag: 9bf779ae-9635-44e8-adcb-f73591140e9d
+		summarizeBy: none
+		sourceColumn: platform
+
+		annotation SummarizationSetBy = Automatic
+
+	column scheduled_time
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: ba009c18-24e4-4a7c-bc85-7482db187f8c
+		summarizeBy: none
+		sourceColumn: scheduled_time
+
+		variation Variation
+			isDefault
+			relationship: a008109f-8082-4ac1-b9f4-e7657a8dd068
+			defaultHierarchy: LocalDateTable_1dd9e000-6618-47a7-bd01-79f11a77440e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column delay_seconds
+		dataType: int64
+		formatString: 0
+		lineageTag: bbac99cf-f10c-4d60-8aef-49dc6c876863
+		summarizeBy: sum
+		sourceColumn: delay_seconds
+
+		annotation SummarizationSetBy = Automatic
+
+	column canceled
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 77bdfdcd-2906-4194-a7a6-9ba2a18b00fd
+		summarizeBy: none
+		sourceColumn: canceled
+
+		annotation SummarizationSetBy = Automatic
+
+	column pulled_at
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d5cd381a-e1c4-4bb4-b08c-b9597367053e
+		summarizeBy: none
+		sourceColumn: pulled_at
+
+		variation Variation
+			isDefault
+			relationship: cda49f8d-1998-4c7c-aa8c-0095627f34be
+			defaultHierarchy: LocalDateTable_b64c53bd-2e88-4014-a793-107b565ca177.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'stations.station_id'
+		dataType: string
+		lineageTag: b79387d5-7bd3-4fd5-b06e-d583bdb203a3
+		summarizeBy: none
+		sourceColumn: stations.station_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Stations Name'
+		dataType: string
+		lineageTag: 6f46659b-9ab1-4216-ae0a-c02fa6d438ab
+		summarizeBy: none
+		sourceColumn: Stations Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'stations.standard_name'
+		dataType: string
+		lineageTag: 2ad31d8c-966b-4a69-9db2-779aca124939
+		summarizeBy: none
+		sourceColumn: stations.standard_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'stations.latitude'
+		dataType: double
+		lineageTag: 606fe19e-0e25-4646-82d6-8ef4622d5369
+		summarizeBy: sum
+		sourceColumn: stations.latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'stations.longitude'
+		dataType: double
+		lineageTag: 48b9b765-7399-4bef-a47d-e4ce27a552bd
+		summarizeBy: sum
+		sourceColumn: stations.longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'stations.wheelchair_boarding'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1c578ea0-9b68-41e0-b72b-1f02a9ad7756
+		summarizeBy: sum
+		sourceColumn: stations.wheelchair_boarding
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'stations.location_type'
+		dataType: int64
+		formatString: 0
+		lineageTag: 8a25501e-8848-4bee-bf6b-595ca987cad5
+		summarizeBy: sum
+		sourceColumn: stations.location_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'vehicles.vehicle_id'
+		dataType: string
+		lineageTag: 8f6c5d2d-fc6a-46c6-b59a-a2b915ce40fe
+		summarizeBy: none
+		sourceColumn: vehicles.vehicle_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'vehicles.vehicle_type'
+		dataType: string
+		lineageTag: ee578b90-01e4-4ffd-9413-e89dcd2f5866
+		summarizeBy: none
+		sourceColumn: vehicles.vehicle_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'vehicles.direction'
+		dataType: string
+		lineageTag: abef0fac-cc1f-4981-a02d-aa74d6087838
+		summarizeBy: none
+		sourceColumn: vehicles.direction
+
+		annotation SummarizationSetBy = Automatic
+
+	column Hour = HOUR(liveboard_records[scheduled_time])
+		formatString: 0
+		lineageTag: ff97332f-86d7-414c-90fa-e3ded5f59c8a
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_week = FORMAT(liveboard_records[scheduled_time], "dddd")
+		lineageTag: 909936fe-462c-4b32-91d7-fd1dfb9cf85d
+		summarizeBy: none
+		sortByColumn: day_number
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_number = WEEKDAY(liveboard_records[scheduled_time], 2)
+		formatString: 0
+		lineageTag: 78a871e1-20ec-4c2f-b53f-5d0e957a4a26
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Delay Severity'
+		dataType: string
+		lineageTag: 99b777f4-8e55-447f-89e1-baa7cedee018
+		summarizeBy: none
+		sourceColumn: Delay Severity
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Scheduled Date' = DATE(YEAR(liveboard_records[scheduled_time]), MONTH(liveboard_records[scheduled_time]), DAY(liveboard_records[scheduled_time]))
+		formatString: General Date
+		lineageTag: cd97cf44-df57-47c8-bc37-0031ea32fc2e
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition liveboard_records = m
+		mode: import
+		source =
+				let
+				    // Stop events, not polling snapshots: one row per train, station and planned
+				    // day, the latest snapshot kept, scheduled_time = timetable time (export time
+				    // minus the delay). Built by railpulse-genai/scripts/build_database.py.
+				    Source = Csv.Document(File.Contents(DataFolder & "liveboard_stops.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"record_id", Int64.Type}, {"station_id", type text}, {"vehicle_id", type text}, {"platform", type text}, {"scheduled_time", type datetime}, {"delay_seconds", Int64.Type}, {"canceled", type logical}, {"pulled_at", type datetime}, {"stations.station_id", type text}, {"Stations Name", type text}, {"stations.standard_name", type text}, {"stations.latitude", type number}, {"stations.longitude", type number}, {"stations.wheelchair_boarding", Int64.Type}, {"stations.location_type", Int64.Type}, {"vehicles.vehicle_id", type text}, {"vehicles.vehicle_type", type text}, {"vehicles.direction", type text}}, "en-US"),
+				    #"Added Conditional Column" = Table.AddColumn(#"Changed Type", "Delay Severity", each if [delay_seconds] < 120 then "On Time (<2min)" else if [delay_seconds] < 300 then "Minor (2-5min)" else if [delay_seconds] <= 900 then "Moderate (5-15min)" else if [delay_seconds] > 900 then "Severe (>15min)" else null, type text)
+				in
+				    #"Added Conditional Column"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
