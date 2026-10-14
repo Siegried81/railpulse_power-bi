@@ -1,0 +1,98 @@
+table routes
+	lineageTag: bee5e526-aba8-4338-9e4b-f001617bfd16
+
+	column agency_id
+		dataType: string
+		lineageTag: f8e93030-5042-4270-88ed-5c011808c0ac
+		summarizeBy: none
+		sourceColumn: agency_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_color
+		dataType: string
+		lineageTag: 1a8bdb42-5e57-44f7-b423-058ff609dab6
+		summarizeBy: none
+		sourceColumn: route_color
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_desc
+		dataType: string
+		lineageTag: 331d9c41-802e-4c3f-b673-d2cdafba49c2
+		summarizeBy: none
+		sourceColumn: route_desc
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_id
+		dataType: string
+		lineageTag: 70ef4b84-dfb8-4d7b-a9f4-2a17414f8e86
+		summarizeBy: none
+		sourceColumn: route_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_long_name
+		dataType: string
+		lineageTag: 2ec12b4e-32a1-49e4-8f2b-3865c66bbfac
+		summarizeBy: none
+		sourceColumn: route_long_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_short_name
+		dataType: string
+		lineageTag: 2f0362f4-fcfc-4470-b7a2-4514c1c9b26f
+		summarizeBy: none
+		sourceColumn: route_short_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_text_color
+		dataType: string
+		lineageTag: 1b823079-bed0-4d87-8dac-d31b98585a8f
+		summarizeBy: none
+		sourceColumn: route_text_color
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_type
+		dataType: int64
+		formatString: 0
+		lineageTag: 2db1ce2f-2d0d-494b-ad1f-b0d67499d56c
+		summarizeBy: none
+		sourceColumn: route_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_url
+		dataType: string
+		lineageTag: 0bdbf2bf-e227-488b-8b50-5b5498710488
+		summarizeBy: none
+		sourceColumn: route_url
+
+		annotation SummarizationSetBy = Automatic
+
+	column train_category
+		dataType: string
+		lineageTag: 95ff6987-d46c-425a-ba70-2674a2001bec
+		summarizeBy: none
+		sourceColumn: train_category
+
+		annotation SummarizationSetBy = Automatic
+
+	partition routes = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "routes.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"agency_id", type text}, {"route_color", type text}, {"route_desc", type text}, {"route_id", type text}, {"route_long_name", type text}, {"route_short_name", type text}, {"route_text_color", type text}, {"route_type", Int64.Type}, {"route_url", type text}, {"train_category", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

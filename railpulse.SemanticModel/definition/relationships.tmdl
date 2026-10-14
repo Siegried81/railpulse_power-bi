@@ -1,0 +1,34 @@
+relationship cda49f8d-1998-4c7c-aa8c-0095627f34be
+	joinOnDateBehavior: datePartOnly
+	fromColumn: liveboard_records.pulled_at
+	toColumn: LocalDateTable_b64c53bd-2e88-4014-a793-107b565ca177.Date
+
+relationship 42aaefd1-a815-4d93-a41c-f6eeac087028
+	fromColumn: liveboard_records.station_id
+	toColumn: stations.station_id
+
+	annotation PBI_IsFromSource = FS
+
+relationship dc91f001-c31d-48d2-8e3d-32e9d744fac8
+	fromColumn: liveboard_records.vehicle_id
+	toColumn: vehicles.vehicle_id
+
+	annotation PBI_IsFromSource = FS
+
+relationship 4a4adee8-8b5e-c7ee-cae5-f61380fae499
+	fromColumn: trips.route_id
+	toColumn: routes.route_id
+
+relationship 3f7770a8-d5f4-4c19-747d-807e071e3a62
+	fromColumn: liveboard_records.vehicle_id
+	toColumn: trips.trip_id
+
+relationship a008109f-8082-4ac1-b9f4-e7657a8dd068
+	joinOnDateBehavior: datePartOnly
+	fromColumn: liveboard_records.scheduled_time
+	toColumn: LocalDateTable_1dd9e000-6618-47a7-bd01-79f11a77440e.Date
+
+relationship b56d0bc6-e2de-77ec-0957-f0d07037fe40
+	fromColumn: liveboard_records.'Scheduled Date'
+	toColumn: Date.Date
+

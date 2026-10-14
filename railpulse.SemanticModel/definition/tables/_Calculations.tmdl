@@ -1,0 +1,155 @@
+table _Calculations
+	lineageTag: 50ddb4ce-bcb7-4d21-a354-726e7e4f9e05
+
+	measure 'Row Highlight' =
+			
+			VAR r = [Hour Total Rank]
+			RETURN IF(r <= 5, "#FFF59D", "#FFFFFF")
+		lineageTag: 2285fa3e-434d-4699-b49e-b291904ffadb
+
+	measure 'Avg Delay (min)' = AVERAGE(liveboard_records[delay_seconds]) / 60
+		lineageTag: b0d41c40-a74c-4e8b-80bd-a7d858a44841
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Delay (sec)' = AVERAGE(liveboard_records[delay_seconds])
+		lineageTag: 11b1679e-fdf7-4b2d-bac7-d93075d0702f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Canceled Trains' = CALCULATE(COUNTROWS(liveboard_records), liveboard_records[canceled] = TRUE)
+		formatString: 0
+		lineageTag: d13760e0-bed1-4345-801a-b9761c70f596
+
+	measure 'Hour Total Rank' =
+			
+			RANKX(
+			    ALLSELECTED(liveboard_records[Hour]),
+			    CALCULATE([Total Delayed Minutes], ALLSELECTED(liveboard_records[day_of_week])),
+			    ,
+			    DESC
+			)
+		formatString: 0
+		lineageTag: 85567680-a9e5-4326-a3cf-4042eb8e7a8f
+
+	measure 'On-Time Rate %' =
+			
+			DIVIDE(
+			    CALCULATE(
+			        COUNTROWS(liveboard_records),
+			        liveboard_records[canceled] = FALSE,
+			        liveboard_records[delay_seconds] < 120
+			    ),
+			    CALCULATE(
+			        COUNTROWS(liveboard_records),
+			        liveboard_records[canceled] = FALSE
+			    )
+			)
+		formatString: 0.0\ %;-0.0\ %;0.0\ %
+		lineageTag: 51818120-cca3-4b4a-8c04-22db958f651c
+
+	measure 'Train Volume' = COUNTROWS(liveboard_records)
+		formatString: 0
+		lineageTag: cc5738a9-0faf-4677-9224-71aa809fce00
+
+	measure 'Total Records' = COUNTROWS(liveboard_records)
+		formatString: 0
+		lineageTag: addad91e-294b-4ad6-97bc-a55eb3fff860
+
+	measure Target_Objectif = 0.9
+		lineageTag: 70c07731-efb3-4670-a1e0-f336e02be8b4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Delayed Minutes' = DIVIDE(SUM(liveboard_records[delay_seconds]), 60)
+		lineageTag: b366fdd0-76bd-46d5-bf84-80e3dff6e749
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Previous Day On-Time Rate %' =
+			
+			CALCULATE([On-Time Rate %], DATEADD('Date'[Date], -1, DAY))
+		lineageTag: b490cccf-10c4-49c0-a59a-f5b3392ee89f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Trend vs Previous Period' =
+			
+			VAR LatestDate = MAX('Date'[Date]) - 1
+			VAR CurrentRate = CALCULATE([On-Time Rate %], 'Date'[Date] = LatestDate)
+			VAR PreviousRate = CALCULATE([On-Time Rate %], 'Date'[Date] = LatestDate - 1)
+			RETURN CurrentRate - PreviousRate
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: baf13cac-3847-4826-9e40-a02302011fce
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Avg Delay Status Color' =
+			
+			VAR D = [Avg Delay (min)]
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    D <= 1.5, "#16F755",
+			    D <= 2.5, "#FFA500",
+			    "#FF0000"
+			)
+		lineageTag: 256cc494-ce32-40ea-ae3d-4ce28c2e4e57
+
+	measure 'Severe Delay Count' =
+			
+			CALCULATE(COUNTROWS(liveboard_records), liveboard_records[Delay Severity]="Severe (>15min)")
+		formatString: 0
+		lineageTag: 798f5ce3-0235-40f9-bcba-b4be79790493
+
+	measure 'Selected Station' =
+			
+			VAR StationName = SELECTEDVALUE(liveboard_records[Stations Name])
+			RETURN
+			IF(ISBLANK(StationName), "No station selected", StationName)
+		lineageTag: 6bc0b2eb-b2bd-4a6d-92f8-1e7d111659e9
+
+	measure 'On-Time Rate Status Color' =
+			
+			VAR CurrentRate = [On-Time Rate %]
+			RETURN SWITCH(TRUE(),
+			    CurrentRate >= [Target_Objectif], "#16F755",
+			    CurrentRate >= [Target_Objectif] - 0.15, "#FFA500",
+			    "#FF0000"
+			)
+		lineageTag: 654b4f41-ae96-4847-aeb4-89f5c6d6b64e
+
+	measure 'Severe Delay Status Color' =
+			
+			VAR S = [Severe Delay Count]
+			VAR RatioSevere = DIVIDE(S, [Total Records])
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    RatioSevere <= 0.02, "#16F755",
+			    RatioSevere <= 0.04, "#FFA500",
+			    "#FF0000"
+			)
+		lineageTag: 5b001ef0-a885-4ec2-a649-e04a650c7f12
+
+	measure Measure
+		lineageTag: 827a09ce-cdf2-4654-b311-d74503851daa
+
+		annotation 43dbc3e8-3a1c-4b6f-9923-b49ff7d6691c = True
+
+	measure 'Zero Baseline' = 0
+		formatString: 0
+		lineageTag: 4ecc3f55-10e8-456f-ab72-4bf72779c282
+
+	partition _Calculations = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+

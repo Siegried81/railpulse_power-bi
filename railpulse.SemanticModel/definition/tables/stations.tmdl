@@ -1,0 +1,79 @@
+table stations
+	lineageTag: 046661ce-9554-4edb-9b04-c565d24241f8
+
+	column station_id
+		dataType: string
+		lineageTag: b65b0fa8-0020-4beb-b7d2-f589e28bcd61
+		summarizeBy: none
+		sourceColumn: station_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 748ff0e7-e070-4c74-829a-1d7978458730
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'stations names'
+		dataType: string
+		lineageTag: da3d8f16-7a26-4493-b9a0-6734150d8daf
+		summarizeBy: none
+		sourceColumn: stations names
+
+		annotation SummarizationSetBy = Automatic
+
+	column latitude
+		dataType: double
+		lineageTag: c8a76061-ddaf-44d1-9a79-49efba085d58
+		summarizeBy: none
+		sourceColumn: latitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column longitude
+		dataType: double
+		lineageTag: 1bb58095-4f99-403a-8cfb-74319745f687
+		summarizeBy: none
+		sourceColumn: longitude
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column wheelchair_boarding
+		dataType: int64
+		formatString: 0
+		lineageTag: 0764a15a-be4a-42e0-b12f-a01a6d9e249d
+		summarizeBy: none
+		sourceColumn: wheelchair_boarding
+
+		annotation SummarizationSetBy = Automatic
+
+	column location_type
+		dataType: int64
+		formatString: 0
+		lineageTag: 398717eb-847b-4e57-b87f-b6f6a673c597
+		summarizeBy: none
+		sourceColumn: location_type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition stations = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "stations.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"station_id", type text}, {"name", type text}, {"stations names", type text}, {"latitude", type number}, {"longitude", type number}, {"wheelchair_boarding", Int64.Type}, {"location_type", Int64.Type}}, "en-US")
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

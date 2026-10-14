@@ -1,0 +1,20 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "07bf3052a1a9061cb6c3",
+  "displayName": "Delay Severity by Train Category, Date and Hour",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "pageBinding": {
+    "name": "d624915850d12546e39b",
+    "type": "Default",
+    "parameters": []
+  },
+  "visualInteractions": [
+    {
+      "source": "139d785b9d31e2cc6422",
+      "target": "c5e5de7558a60b93999d",
+      "type": "NoFilter"
+    }
+  ]
+}

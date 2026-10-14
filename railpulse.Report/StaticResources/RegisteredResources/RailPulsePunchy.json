@@ -1,0 +1,64 @@
+{
+  "name": "RailPulse Punchy",
+  "dataColors": [
+    "#FF2E63",
+    "#08D9D6",
+    "#FFC300",
+    "#7B2FF7",
+    "#00E676",
+    "#FF6B00",
+    "#2979FF",
+    "#F50057"
+  ],
+  "foreground": "#1A1A2E",
+  "foregroundNeutralSecondary": "#4A4E69",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F4F6FB",
+  "backgroundNeutral": "#E4E7F2",
+  "tableAccent": "#7B2FF7",
+  "good": "#00C853",
+  "neutral": "#FFC300",
+  "bad": "#FF2E63",
+  "maximum": "#FF2E63",
+  "center": "#FFC300",
+  "minimum": "#08D9D6",
+  "textClasses": {
+    "title": {
+      "fontFace": "Segoe UI Semibold",
+      "fontSize": 13,
+      "color": "#1A1A2E"
+    },
+    "callout": {
+      "fontFace": "Segoe UI Bold",
+      "fontSize": 28,
+      "color": "#7B2FF7"
+    },
+    "label": {
+      "fontFace": "Segoe UI",
+      "fontSize": 10,
+      "color": "#4A4E69"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "border": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#E4E7F2"
+              }
+            },
+            "radius": 10
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": true
+          }
+        ]
+      }
+    }
+  }
+}

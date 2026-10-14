@@ -1,0 +1,7 @@
+expression DataFolder = "D:\Users\Siegried\Desktop\Becode\railpulse\railpulse_power-bi\data\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 9156efb6-7fcd-4303-a8dd-cab401e7e81e
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+

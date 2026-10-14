@@ -1,0 +1,84 @@
+table Date
+	lineageTag: 71a056b5-b3aa-41aa-93bc-485e4adffe12
+	dataCategory: Time
+
+	column Date
+		isKey
+		formatString: General Date
+		lineageTag: 513af7c9-f551-4538-bef7-c01adc387a1b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		formatString: 0
+		lineageTag: 52fce6b9-e2f9-4bba-9624-fe637cb7020a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNum
+		formatString: 0
+		lineageTag: 07cf51ad-7c9d-4807-a652-392952e28359
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MonthNum]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		lineageTag: df90c39e-add6-4283-9a43-f1e071ae493d
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Week
+		formatString: 0
+		lineageTag: 8bf2f14d-60da-4ead-8284-097d0a6199f9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Week]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Week Label'
+		lineageTag: 23aaed80-07dc-4d0e-9ccc-ca2e557e3ff6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Week Label]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day Label'
+		lineageTag: 95eaa51e-c263-4aef-87b7-b4a9f19c64b5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Day Label]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Date = calculated
+		mode: import
+		source =
+				
+				VAR MinDate = MIN(liveboard_records[scheduled_time])
+				VAR MaxDate = MAX(liveboard_records[scheduled_time])
+				RETURN
+				ADDCOLUMNS(
+				    CALENDAR(MinDate, MaxDate),
+				    "Year", YEAR([Date]),
+				    "MonthNum", YEAR([Date]) * 100 + MONTH([Date]),
+				    "Month", FORMAT([Date], "MMM YYYY"),
+				    "Week", WEEKNUM([Date], 2),
+				    "Week Label", "W" & WEEKNUM([Date], 2) & " " & YEAR([Date]),
+				    "Day Label", FORMAT([Date], "ddd dd/MM")
+				)
+
+	annotation PBI_Id = 0ac12345e4df4acd86653b85bfac0bac
+

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "72bc2e2b4b3ec23c5217",
+  "displayName": "Micro Report",
+  "displayOption": "ActualSize",
+  "height": 900,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "8aa59bab7a9e224396c4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "routes"
+              }
+            },
+            "Property": "train_category"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      },
+      {
+        "name": "3229681ee9509eb90108",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "liveboard_records"
+              }
+            },
+            "Property": "Stations Name"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "20485cf82396481aaaa1",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "b84341371b9ae16d9300",
+        "boundFilter": "8aa59bab7a9e224396c4",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "routes"
+              }
+            },
+            "Property": "train_category"
+          }
+        }
+      },
+      {
+        "name": "3d8027f43d0bae84b543",
+        "boundFilter": "3229681ee9509eb90108",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "liveboard_records"
+              }
+            },
+            "Property": "Stations Name"
+          }
+        }
+      }
+    ],
+    "acceptsFilterContext": "None"
+  },
+  "visibility": "HiddenInViewMode"
+}

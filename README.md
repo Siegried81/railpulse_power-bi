@@ -28,6 +28,22 @@ Or you can simply download it from this repo.
 
 ## 1. Data Model
 
+> **Current source: local files, not Azure.** The Azure subscription that fed
+> this report has run out of credits, so the project now reads the files in
+> [`data/`](data/), exported from the RailPulse SQLite database
+> (`railpulse-genai/scripts/build_database.py`): `liveboard_stops.csv` holds the
+> **99,014 stop events** — one row per train, station and planned day, latest
+> snapshot kept, `scheduled_time` already the timetable time — plus `stations`,
+> `vehicles`, `trips` and `routes`. The folder is the `DataFolder` parameter
+> (Transform data → Manage parameters); point it at your own clone and refresh.
+> The report is saved as a Power BI project (`railpulse.pbip`, PBIR + TMDL), so
+> every query, measure and visual is a text file that can be reviewed in a diff.
+> The figures quoted in §2 were measured on the Azure snapshot table and are
+> kept as written; after a refresh on these files the pages show the
+> distinct-stop values given beside them.
+>
+> The original Azure setup, as built during the challenge:
+
 I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net`, database `db-railpulse`) for the live tables, and to Azure Blob Storage for the two static GTFS reference tables, `routes` and `trips` are served from `railpulsechallenge97d6.blob.core.windows.net/powerbi-gtfs-static/`, authenticated with my BeCode Microsoft Entra ID account. This was the last piece I needed to make the whole pipeline cloud-native end to end.
 
 | Table | Source | Role |
@@ -49,6 +65,19 @@ I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net
 **Date relationship fix I applied:** I ran into an issue where `scheduled_time` (which includes the time of day) wouldn't relate to my puredate `Date` table — Power BI just refused to link them properly. My fix was to add a calculated column, `Scheduled Date`, that strips out the time and keeps just the date, then I related that to `Date[Date]` instead.
 
 ## 2. Report Pages
+
+Two explorer pages open the report, built for filtering rather than reading:
+
+- **Explorer** — four synced slicers (date range, station, train category,
+  delay severity), four KPI cards (on-time rate, average delay, severe delays,
+  stop events), a matrix that drills **train category → route → station**, and a
+  column chart that drills **day → hour**.
+- **Station Drill-down** — the same slicers, delayed minutes by station drilling
+  down to the hour, the daily on-time rate per train category, the severity mix,
+  and the on-time rate by **weekday → hour**.
+
+The slicers share sync groups, so a filter set on one page follows you to the
+other. The report uses a custom theme (`StaticResources/RegisteredResources/RailPulsePunchy.json`).
 
 11 pages, in this order:
 
