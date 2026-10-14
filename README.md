@@ -32,7 +32,7 @@ I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net
 
 | Table | Source | Role |
 |---|---|---|
-| `liveboard_records` | Azure SQL | Fact table — one row per real-time GTFS-RT departure event (**980,868 rows** as of my latest refresh) |
+| `liveboard_records` | Azure SQL | Fact table — one row per polling snapshot of a real-time GTFS-RT departure (**980,868 rows** as of my latest refresh, see the note below) |
 | `stations` | Azure SQL | Dimension — station reference data (name, lat/long). 1,856 stations total in this table, though only 598 of them actually appear in the live fact table — the rest exist in the GTFS static reference but haven't produced a real-time departure event yet during my collection window |
 | `vehicles` | Azure SQL | Dimension — vehicle type/direction. 3,617 vehicles, matching exactly the number of distinct `vehicle_id` values in the fact table |
 | `routes` | Azure Blob Storage (`routes.txt`) | Dimension — `train_category` (IC / S / P / L / NJ / EC / T / BUS / EXT / OTC), 1,801 routes |
@@ -41,6 +41,8 @@ I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net
 | `Date` | Calculated table (`CALENDAR()`), marked as Date Table | Date dimension for trend visuals, related to `liveboard_records[Scheduled Date]` |
 
 **Join coverage:** `trip_id` matches trips[trip_id] for about 86% of rows — the rest are excluded from category breakdowns rather than shown unlabeled.
+
+**Rows are polling snapshots, not departures.** The pipeline polls every 15 minutes, and a stop that hasn't been served yet is captured again on every poll until the train leaves. So the 980,868 rows hold only **99,014 distinct stop events** (`vehicle_id`, `station_id`, `Scheduled Date`), about 9.9 snapshots per stop, and a stop announced long in advance weighs far more than one polled once. Every measure in this report counts rows, so the figures on the pages (and quoted below) are snapshot-weighted. I found this after building the dashboard; where it matters, I give next to each figure the value on the 99,014 distinct stops, keeping the latest snapshot of each. Also, `scheduled_time` in the export is the planned time plus the current delay, so it drifts from one poll to the next; the planned time is `scheduled_time − delay_seconds`.
 
 **My honest read on the data window.** I've collected **12 days** of polling so far (27 Jul – 7 Aug 2026) — not much for trend analysis. The "Daily Change" KPI computes correctly, but I wouldn't call it a trend indicator yet — I frame it as "the mechanism works and is live," not "the network is improving," until several more days (or weeks, depending of my free credits) smooth out the noise.
 
@@ -54,55 +56,55 @@ I connect the report to Azure SQL Database (`serv-railpulse.database.windows.net
 
 Landing/exec page: two gauges (All Network / Major Hubs, each driven by its own independent slicer — `Stations Name` for the network view, a dedicated `Major Hubs` slicer restricted to the 5 flagship stations for the hub view, with cross-interactions deliberately disabled between them so neither slicer affects the other's gauge), plus Total Records, Canceled Trains, the "Daily Change" trend KPI, and the standard 3-filter slicer set.
 
-**Conclusion:** My network-wide on-time rate sits at **78.3%** across all 980,868 records I've collected, which is a meaningful gap below the 90% objective I set out to measure against. What strikes me looking at this page is how much that single network-wide number hides — once I break it down by hub (§2.6), individual stations swing from the mid-60s to the high-80s, so "78.3%" is really an average of some fairly different local realities rather than a uniform experience across the network.
+**Conclusion:** My network-wide on-time rate sits at **78.3%** across all 980,868 records I've collected (polling snapshots; on the 99,014 distinct stops the rate is **72.2%**), which is a meaningful gap below the 90% objective I set out to measure against. What strikes me looking at this page is how much that single network-wide number hides — once I break it down by hub (§2.6), individual stations swing from the mid-60s to the high-80s (about 53% to 79% per distinct stop), so "78.3%" is really an average of some fairly different local realities rather than a uniform experience across the network.
 
 ### 2.2 Rush Hours Matrix
 
 Combo chart: Train Volume (columns) vs Avg Delay (line) by Hour.
 
-**Conclusion:** Volume peaks in the early-to-mid afternoon (14:00–16:00), but delay peaks later, in the 17:00–21:00 window, roughly double the midday baseline. That mismatch is the most interesting finding here — the network isn't slowest when it's busiest, it's slowest later in the day. I checked whether Nightjet services (my worst-performing category) were driving this, but they're a small enough slice of evening traffic (~5,8%) that the pattern holds without them — so the cause is still an open question for me.
+**Conclusion:** Volume peaks in the early-to-mid afternoon (14:00–16:00), but delay peaks later, in the 17:00–21:00 window, roughly double the midday baseline. That mismatch is the most interesting finding here — the network isn't slowest when it's busiest, it's slowest later in the day. I checked whether Nightjet services (my worst-performing category) were driving this, but they're a small enough slice of the 17:00–21:00 delayed minutes (~5.8% in snapshots, 0.6% per distinct stop) that the pattern holds without them — so the cause is still an open question for me.
 
 ### 2.3 Delay by Train Category: Train Class Breakdown
 
 Combo chart: Total Delayed Minutes + Avg Delay (min) by `train_category`.
 
-**Conclusion:** IC and S trains dominate total delay volume (about 698,000 and 487,000 delayed minutes respectively) simply because they're the categories running the most trips. But Nightjet is the real outlier on a per-trip basis: only 4,252 records in my dataset, yet an average delay of nearly **17 minutes**, several times worse than any other category. I'd flag that as the single most actionable number on this page — it's a small, low-volume service, but almost every Nightjet departure I've recorded runs meaningfully late (see §2.10).
+**Conclusion:** IC and S trains dominate total delay volume (about 698,000 and 487,000 delayed minutes respectively, summed over snapshots; about 74,000 and 67,000 over distinct stops) simply because they're the categories running the most trips. But Nightjet is the real outlier on a per-trip basis: only 4,252 records in my dataset, yet an average delay of nearly **17 minutes**, several times worse than any other category. Those 4,252 records are snapshots of just **59 distinct Nightjet stops**, which average about **22 minutes** late, so the outlier holds per stop but rests on a small sample. I'd flag that as the single most actionable number on this page — it's a small, low-volume service, and about two thirds of the Nightjet stops I've recorded (39 of 59) run 2 minutes late or more (see §2.10).
 
 ### 2.4 Stations Congestion Map: Station Congestion Map
 
 Clustered bar chart (Total Delayed Minutes by station) + Azure Map (bubble size = Total Delayed Minutes, positioned by lat/long). Canvas deliberately larger (1250×1600) to fit the map.
 
-**Conclusion:** Congestion is heavily concentrated rather than spread evenly across my 598-station network — the three Brussels hubs (Nord, Midi, Central) alone account for close to 180,000 of my roughly 1.7 million total delayed minutes, despite representing a tiny fraction of the stations I'm tracking. Looking at the map, it's visually obvious that the network's delay problem is really a "handful of major junctions" problem rather than a diffuse, network-wide one.
+**Conclusion:** Congestion is heavily concentrated rather than spread evenly across my 598-station network — the three Brussels hubs (Nord, Midi, Central) alone account for close to 180,000 of my roughly 1.7 million total delayed minutes (snapshot sums; per distinct stop, about 17,000 of 199,000), despite representing a tiny fraction of the stations I'm tracking. Looking at the map, it's visually obvious that the network's delay problem is really a "handful of major junctions" problem rather than a diffuse, network-wide one.
 
 ### 2.5 Top 10 Worst-Performing Stations
 
 Bar chart, Avg Delay by station, all stations.
 
-**Conclusion:** This is where the international/border stations show up — Rosenheim (DE) tops my list at nearly 43 minutes average delay, followed by München Ost and Koblenz Hbf, all well above anything in the Belgian core network. I read this less as "SNCB is failing these stations" and more as: these are the last stops on long cross-border lines, so delay that piled up somewhere earlier on the route probably just shows up here at the end. I can't confirm that from this data alone, but it's the explanation that makes the most sense to me (worth keeping in mind before using this chart to point fingers).
+**Conclusion:** This is where the international/border stations show up — Rosenheim (DE) tops my list at nearly 43 minutes average delay, followed by München Ost and Koblenz Hbf, all well above anything in the Belgian core network. Each of those three is only 4 distinct stops in my window (149 to 305 snapshots), so the ranking is real but the sample is tiny. I read this less as "SNCB is failing these stations" and more as: these are the last stops on long cross-border lines, so delay that piled up somewhere earlier on the route probably just shows up here at the end. I can't confirm that from this data alone, but it's the explanation that makes the most sense to me (worth keeping in mind before using this chart to point fingers).
 
 ### 2.6 Avg Delay for Major Hubs: Cross-Hub Comparison
 
 Scatter chart: Avg Delay × Train Volume × Total Delayed Minutes, one bubble per major hub. 
 
-**Conclusion:** Bruxelles-Central is clearly my weakest major hub: around 66% on-time and roughly 2.2 minutes average delay, noticeably worse than Charleroi-Central (87% on-time, ~1.1 min) and Gand-Saint-Pierre (84% on-time, ~1.3 min), which are my two best performers. Anvers-Central and Liège-Guillemins sit in between. What I take from this chart is that "major hub" doesn't mean "equally strained"; Bruxelles-Central is carrying a disproportionate share of my delay problem relative to its four peers.
+**Conclusion:** Bruxelles-Central is clearly my weakest major hub: around 66% on-time and roughly 2.2 minutes average delay, noticeably worse than Charleroi-Central (87% on-time, ~1.1 min) and Gand-Saint-Pierre (84% on-time, ~1.3 min), which are my two best performers. Per distinct stop the ranking holds, at lower levels: Bruxelles-Central 53% on-time and 2.9 min, Charleroi-Central 77% and 2.0 min, Gand-Saint-Pierre 79% and 1.7 min. Anvers-Central and Liège-Guillemins sit in between. What I take from this chart is that "major hub" doesn't mean "equally strained"; Bruxelles-Central is carrying a disproportionate share of my delay problem relative to its four peers.
 
 ### 2.7 On-Time Rate by Day of Week
 
 Line chart, On-Time Rate % across the week.
 
-**Conclusion:** Monday and Friday are my two weakest days, both sitting around 75–76% on-time, while Sunday is by far my strongest at nearly 86%. That pattern lines up with intuition — weekday commuter pressure at the start and end of the working week versus a much lighter, less schedule-dependent Sunday service, but I'd want more weeks of data before treating this as a stable weekly signature rather than a one-off pattern from my 12 days window.
+**Conclusion:** Monday and Friday are my two weakest days, both sitting around 75–76% on-time, while Sunday is by far my strongest at nearly 86% (per distinct stop: about 69–70% on Monday and Friday, 80% on Sunday). That pattern lines up with intuition — weekday commuter pressure at the start and end of the working week versus a much lighter, less schedule-dependent Sunday service, but I'd want more weeks of data before treating this as a stable weekly signature rather than a one-off pattern from my 12 days window.
 
 ### 2.8 Delay Severity Breakdown
 
 Donut chart, records by severity band, fixed color palette, matched on the Micro Report bar chart using the same page.
 
-**Conclusion:** 78.3% of my records fall in the On Time band, 13.9% are Minor delays (2–5 min), and the remaining 7.7% split between Moderate (5.7%) and Severe (2.0%). What's notable to me is that the Moderate and Severe bands (under 8% of records combined) still account for a hugely disproportionate share of total delayed minutes, which is exactly what §2.9 makes visible.
+**Conclusion:** 78.3% of my records fall in the On Time band, 13.9% are Minor delays (2–5 min), and the remaining 7.7% split between Moderate (5.7%) and Severe (2.0%). Counted per distinct stop instead of per snapshot, the bands are 72.2% On Time, 18.5% Minor, 6.9% Moderate and 2.3% Severe. What's notable to me is that the Moderate and Severe bands (under 8% of records combined) still account for a hugely disproportionate share of total delayed minutes, which is exactly what §2.9 makes visible.
 
 ### 2.9 Delay Concentration 
 
 Pivot table, Hour × Day of Week, values = Total Delayed Minutes.
 
-**Conclusion:** Wednesday alone accounts for roughly **510,000 of my 1.70 million total delayed minutes** — close to a third of everything I've recorded, concentrated in a single day of the week. Drilling into the worst single cell, Wednesday at 17:00 stands out at about 48,000 delayed minutes, and that same 17:00 hour totals close to 159,000 minutes across the whole week — by a wide margin the single worst recurring time slot in my entire dataset.
+**Conclusion:** Wednesday alone accounts for roughly **510,000 of my 1.70 million total delayed minutes** — close to a third of everything I've recorded, concentrated in a single day of the week. Drilling into the worst single cell, Wednesday at 17:00 stands out at about 48,000 delayed minutes, and that same 17:00 hour totals close to 159,000 minutes across the whole week — by a wide margin the single worst recurring time slot in my entire dataset. Summed per distinct stop, Wednesday is still the worst day (about 51,000 of 199,000 minutes, a quarter) and 17:00 still the worst hour (about 17,600 minutes), but the worst single cell becomes Wednesday 18:00 (about 5,500) just ahead of Wednesday 17:00 (about 4,800).
 
 ### 2.10 Delay Severity by Train Category, Date and Hour
 
@@ -225,7 +227,7 @@ else null
    *Expected impact:* Highest system-wide punctuality gain per intervention effort due to the hub's centrality and delay contribution.
 
 2. **Deploy targeted mitigation for the Wednesday 17:00 bottleneck.**
-   Wednesday is the heaviest delay-concentration day, and 17:00 is the single worst recurring slot in the dataset.
+   Wednesday is the heaviest delay-concentration day, and 17:00 is the single worst recurring hour in the dataset (per distinct stop, Wednesday 17:00–19:00 is the worst window).
    *Expected impact:* Reduce one of the most concentrated delay peaks through focused staffing, timetable buffers, and platform-flow adjustments during that specific window.
 
 3. **Launch a dedicated Nightjet punctuality action plan (small volume, high delay severity).**
